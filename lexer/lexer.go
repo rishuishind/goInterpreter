@@ -1,6 +1,9 @@
 package lexer
 
-import "interpreter/token"
+import (
+	"fmt"
+	"interpreter/token"
+)
 
 type Lexer struct {
 	input string
@@ -31,7 +34,13 @@ func (l *Lexer) NextToken() token.Token{
 	l.skipWhitespace()
 	switch l.ch {
 	case '=' :
+		nextWord := l.peekChecker()
+		if nextWord == '='{
+			l.readChar()
+			tok = token.Token{Type:token.EQ,Literal: string(nextWord) + string(l.ch)}
+		}else{
 		tok = newToken(token.ASSIGN,l.ch)
+	}
 	case ';' :
 		tok = newToken(token.SEMICOLON,l.ch)
 	case '(' :
@@ -49,7 +58,15 @@ func (l *Lexer) NextToken() token.Token{
 	case '-':
 		tok = newToken(token.MINUS, l.ch)
 	case '!':
-		tok = newToken(token.BANG, l.ch)
+		nextWord := l.peekChecker()
+		currentWord := l.ch
+		if nextWord == '='{
+			l.readChar()
+			fmt.Println(string(l.ch))
+			tok = token.Token{Type:token.NOT_EQ,Literal: string(currentWord) + string(nextWord)}
+		}else{
+		tok = newToken(token.BANG,l.ch)
+	}
 	case '/':
 		tok = newToken(token.SLASH, l.ch)
 	case '*':
@@ -76,6 +93,14 @@ func (l *Lexer) NextToken() token.Token{
 	}
 	l.readChar()
 	return tok
+}
+
+func (l *Lexer) peekChecker() byte {
+	if l.readPosition >= len(l.input){
+		return 0
+	}else{
+		return l.input[l.readPosition]
+	}
 }
 
 func (l *Lexer) readNumber() string {
